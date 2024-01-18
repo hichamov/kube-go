@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: tcp-server
+  name: tcp-server
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tcp-server
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: tcp-server
+    spec:
+      serviceAccountName: leader-elector
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - tcp-server
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - image: hicham7farhi/tcp-server:0.2
+        name: tcp-server
+        command: ["go"]
+        args: ["run", "/app/main.go"]
+        ports:
+            - containerPort: 3333
+              protocol: TCP
+              name: tcp
+            - containerPort: 2222
+              protocol: TCP
+              name: metrics
+      - name: leader-elector
+        image: vaporio/k8s-elector
+        args: ["-election=tcp","-lock-type=leases","-http=0.0.0.0:5002"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: tcp-server
+  name: tcp-server
+spec:
+  ports:
+  - nodePort: 30171
+    name: tcp
+    port: 3333
+    protocol: TCP
+    targetPort: 3333
+  - nodePort: 30172
+    name: metrics
+    port: 2222
+    protocol: TCP
+    targetPort: 2222
+  selector:
+    app: tcp-server
+  type: NodePort
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: leade-elector
+  namespace: default
+rules:
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["get", "list", "watch", "create", "delete", "update"]
+- apiGroups: ["*"]
+  resources: ["pods"]
+  verbs: ["get", "patch"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: leader-elector
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: default
+  name: leader-elector
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: leade-elector
+subjects:
+- kind: ServiceAccount
+  name: leader-elector
+  namespace: default
