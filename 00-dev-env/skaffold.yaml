@@ -1,0 +1,16 @@
+apiVersion: skaffold/v4beta9
+kind: Config
+metadata:
+  name: --dev-env
+build:
+  tagPolicy:
+    gitCommit: {}
+  local:
+    push: true
+  artifacts:
+    - image: hicham7farhi/kube-go
+      docker:
+        dockerfile: Dockerfile
+manifests:
+    rawYaml:
+     - deployment.yml

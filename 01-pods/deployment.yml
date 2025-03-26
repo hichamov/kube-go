@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: pod-creator
+  name: pod-creator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pod-creator
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: pod-creator
+    spec:
+      serviceAccountName: viewer
+      containers:
+      - image: hicham7farhi/kube-pod-creator
+        name: kube-pod-creator
+        resources: {}
+status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: viewer
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: viewer
+subjects:
+- kind: ServiceAccount
+  name: viewer
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: view
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: kube-go
+  name: kube-go
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kube-go
+  strategy: 
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: kube-go
+    spec:
+      containers:
+      - image: hicham7farhi/kube-go
+        name: kube-go
+        imagePullPolicy: Always
+        resources: {}
+status: {}

@@ -1,0 +1,16 @@
+apiVersion: skaffold/v4beta9
+kind: Config
+metadata:
+  name: --pods
+build:
+  tagPolicy:
+    gitCommit: {}
+  local:
+    push: true
+  artifacts:
+    - image: hicham7farhi/kube-pod-creator
+      docker:
+        dockerfile: Dockerfile
+manifests:
+  rawYaml:
+    - deployment.yml
